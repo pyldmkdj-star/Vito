@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
+    <!-- שם האפליקציה בגוגל -->
     <title>Vito – Smart AI Assistant for the Blind and Visually Impaired</title>
     
+    <!-- SEO Meta Tags -->
     <meta name="description" content="Vito is an easy-to-use app designed to give independence back to the elderly and visually impaired. Simply open the app, tap the screen, and our smart AI instantly recognizes the object in front of you and reads its name out loud in clear Hebrew. No complex menus, no hassle—just instant visual support at your fingertips.">
-    <meta name="keywords" content="Vito, Vito app, accessibility for blind, app for visually impaired, object recognition voice, AI for blind, elderly support app, image to speech, נגישות לעיוורים, אפליקציה לכבדי ראייה, זיהוי חפצים קולי, עזרה לקשישים, בינה מלאכותית לעיוורים, עוזר קולי, accesibilidad para ciegos, app para discapacitados visuales, reconocimiento de objetos por voz, IA para ciegos, доступность для слепых, приложение для слабовидящих, распознавание объектов голосом, ИИ для слепых, إمكانية الوصول للمكفوفين, تطبيق لضعاف البصر, التعرف على الأشياء بالصوت, الذكاء الاصطناعي للمكفوفين, accessibilité pour aveugles, application malvoyants, reconnaissance d'objets vocale, IA pour aveugles, Barrierefreiheit für Blinde, App für Sehbehinderte, Objekterkennung Sprache, KI für Blinde, acessibilidade para cegos, aplicativo para deficientes visuais, reconhecimento de objetos por voz, accessibilità per ciechi, app per ipovedenti, riconoscimento oggetti vocale, IA per ciechi, अंधों के लिए ऐप, दृष्टिबाधित सहायता, आवाज से वस्तु पहचान, एआई सहायक">
+    <meta name="keywords" content="Vito, Vito app, accessibility for blind, app for visually impaired, object recognition voice, AI for blind, elderly support app, image to speech, נגישות לעיוורים, אפליקציה לכבדי ראייה, זיהוי חפצים קולי, עזרה לקשישים, בינה מלאכותית לעיוורים, עוזר קולי, accesibilidad para ciegos, app para discapacitados visuales, reconocimiento de objetos por voz, IA para ciegos, доступность для слепых, приложение для слабовидящих, распознавание объектов голосом, ИИ для слепых, إمكانية الوصول للمكفوفين, تطبيق لضعاف البصر, التعرف على الأشياء بالصوت, الذكاء الاصطناعي للمكفوفين, accessibilité pour aveugles, application malvoyants, reconnaissance d'objets vocale, IA pour aveugles, Barrierefreiheit für Blinde, App für Sehbehinderte, Objekterkennung Sprache, KI für Blinde, acessibilidade para cegos, aplicativo para deficientes visuais, reconocimiento de objetos por voz, accessibilità per ciechi, app per ipovedenti, reconocimiento oggetti vocale, IA per ciechi, अंधों के लिए ऐप, दृष्टिबाधित सहायता, आवाज से वस्तु पहचान, एआई सहायक">
 
     <style>
         :root {
@@ -97,10 +99,12 @@
 </head>
 <body>
 
+    <!-- לוגו מוגן מהורדה -->
     <div class="logo-container" oncontextmenu="return false;">
         <img src="https://i.ibb.co/r2331BM8/1782692956589.png" alt="Vito Logo">
     </div>
 
+    <!-- מסך טופס הרישום -->
     <div id="auth-screen">
         <div class="form-card">
             <h2 id="form-title">Registration</h2>
@@ -130,6 +134,7 @@
         </div>
     </div>
 
+    <!-- אפליקציה ראשית -->
     <div id="main-app">
         <div id="status">Loading...</div>
         <video id="video" autoplay playsinline muted></video>
@@ -138,7 +143,7 @@
     </div>
 
     <script>
-        // הקישור המעודכן האמיתי שלך מ-Render
+        // הקישור האמיתי שלך מ-Render
         const BACKEND_URL = "https://vito-ck9h.onrender.com"; 
 
         const translations = {
