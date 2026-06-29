@@ -5,21 +5,21 @@ const fs = require('fs');
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
 
-const app = express();
+const app = report => express();
 app.use(cors());
 app.use(bodyParser.json({ limit: '10mb' }));
 
 const DB_FILE = './database.json';
 const OPENAI_API_KEY = "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";
 
-// טוקנים של הבוטים שסיפקת
+// טוקנים של הבוטים שלך
 const USER_BOT_TOKEN = "8887008089:AAHdAkySRNptjORNPiXJH-wB9DRPJ_w0H-w";
 const ADMIN_BOT_TOKEN = "8886771952:AAGZRZq_vloOnohWwfjaAb8Sr7yl7QXtkQ8";
 
 const userBot = new TelegramBot(USER_BOT_TOKEN, { polling: true });
 const adminBot = new TelegramBot(ADMIN_BOT_TOKEN, { polling: true });
 
-// טעינת מסד נתונים בסיסי
+// יצירת מסד נתונים מקומי
 if (!fs.existsSync(DB_FILE)) {
     fs.writeFileSync(DB_FILE, JSON.stringify({ users: [], blocked: [] }));
 }
@@ -29,9 +29,7 @@ function saveDB() {
     fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
 }
 
-// --- API לאתר ---
-
-// בדיקת סטטוס משתמש
+// בדיקת חסימה
 app.get('/api/check-user', (req, res) => {
     const email = req.query.email;
     if (db.blocked.includes(email)) {
@@ -40,25 +38,24 @@ app.get('/api/check-user', (req, res) => {
     res.json({ blocked: false });
 });
 
-// רישום משתמש חדש
+// רישום משתמש
 app.post('/api/register', (req, res) => {
     const { fullName, email, birthDate, gender } = req.body;
     if (db.blocked.includes(email)) {
         return res.status(403).send("Blocked");
     }
     
-    // מניעת כפילויות
     if (!db.users.find(u => u.email === email)) {
         db.users.push({ fullName, email, birthDate, gender });
         saveDB();
 
-        // שליחת עדכון לבוט הניהול על משתמש חדש שנרשם באתר
+        // שליחת הודעה לבוט הניהול
         sendToAllAdmins(`🆕 משתמש חדש נרשם באתר!\nשם: ${fullName}\nאימייל: ${email}\nתאריך לידה: ${birthDate}\nמגדר: ${gender}`);
     }
     res.sendStatus(200);
 });
 
-// ניתוח תמונה מול OpenAI מוגן בשרת
+// ניתוח תמונה
 app.post('/api/analyze', async (req, res) => {
     const { image, prompt } = req.body;
     try {
@@ -85,7 +82,7 @@ app.post('/api/analyze', async (req, res) => {
     }
 });
 
-// --- 🤖 בוט המשתמשים (USER BOT) ---
+// בוט משתמשים (User Bot)
 userBot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
     const lang = msg.from.language_code === 'he' ? 'he' : 'en';
@@ -99,14 +96,15 @@ userBot.onText(/\/start/, (msg) => {
     userBot.sendMessage(chatId, welcomeText, {
         reply_markup: {
             inline_keyboard: [[
+                // תשנה פה לכתובת האמיתית של האתר שלך ב-GitHub Pages!
                 { text: btnText, web_app: { url: "https://YOUR-GITHUB-PAGES-URL.github.io" } }
             ]]
         }
     });
 });
 
-// --- 🛠️ בוט הניהול (ADMIN BOT) ---
-let adminChatIds = new Set(); // שמירת מנהלים שהפעילו את הבוט
+// בוט ניהול (Admin Bot)
+let adminChatIds = new Set();
 
 adminBot.onText(/\/start/, (msg) => {
     adminChatIds.add(msg.chat.id);
@@ -117,7 +115,6 @@ function sendToAllAdmins(text) {
     adminChatIds.forEach(id => adminBot.sendMessage(id, text));
 }
 
-// פקודת חסימה
 adminBot.on('message', (msg) => {
     adminChatIds.add(msg.chat.id);
     const text = msg.text || "";
@@ -131,7 +128,6 @@ adminBot.on('message', (msg) => {
         }
     }
 
-    // פקודת ביטול חסימה
     if (text.startsWith("ביטול חסימה ")) {
         const email = text.replace("ביטול חסימה ", "").trim();
         db.blocked = db.blocked.filter(e => e !== email);
@@ -139,7 +135,6 @@ adminBot.on('message', (msg) => {
         adminBot.sendMessage(msg.chat.id, `✅ החסימה הוסרה עבור המייל ${email}.`);
     }
 
-    // פקודת רשימת משתמשים
     if (text === "רשימה משתמשים") {
         if (db.users.length === 0) {
             return adminBot.sendMessage(msg.chat.id, "אין משתמשים רשומים במערכת.");
@@ -153,6 +148,5 @@ adminBot.on('message', (msg) => {
     }
 });
 
-// הפעלת השרת
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
