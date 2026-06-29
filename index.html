@@ -17,38 +17,92 @@
             --text-color: #ffffff;
             --accent-color: #007bff;
         }
+        
         body {
-            margin: 0; padding: 0; background-color: var(--bg-color); color: var(--text-color);
+            margin: 0; padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             font-family: system-ui, -apple-system, sans-serif;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             min-height: 100vh; overflow: hidden;
         }
-        .logo-container { margin-bottom: 20px; text-align: center; user-select: none; }
-        .logo-container img { width: 80px; height: auto; }
-        #auth-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 100;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;
+
+        .logo-container {
+            margin-bottom: 20px;
+            text-align: center;
+            user-select: none; -webkit-user-drag: none;
         }
-        .form-card { background: var(--card-bg); padding: 30px; border-radius: 15px; width: 100%; max-width: 450px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .logo-container img { width: 80px; height: auto; pointer-events: none; }
+
+        #auth-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color); z-index: 100;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; box-sizing: border-box;
+        }
+
+        .form-card {
+            background: var(--card-bg); padding: 30px; border-radius: 15px;
+            width: 100%; max-width: 450px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
         .form-group { margin-bottom: 20px; display: flex; flex-direction: column; }
         label { margin-bottom: 8px; font-weight: bold; }
-        input, select { padding: 12px; border-radius: 8px; border: 1px solid #444; background: #333; color: white; font-size: 16px; width: 100%; box-sizing: border-box; }
-        button.submit-btn { width: 100%; padding: 14px; background: var(--accent-color); border: none; border-radius: 8px; color: white; font-size: 18px; font-weight: bold; cursor: pointer; }
+        input, select {
+            padding: 12px; border-radius: 8px; border: 1px solid #444;
+            background: #333; color: white; font-size: 16px; width: 100%; box-sizing: border-box;
+        }
+
+        button.submit-btn {
+            width: 100%; padding: 14px; background: var(--accent-color);
+            border: none; border-radius: 8px; color: white; font-size: 18px;
+            font-weight: bold; cursor: pointer;
+        }
+
         #main-app { display: none; width: 100%; height: 100vh; position: relative; }
         #video { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
-        #status { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.85); padding: 15px 30px; border-radius: 30px; font-size: 22px; font-weight: bold; z-index: 10; text-align: center; max-width: 85%; }
-        #click-area { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; border: none; cursor: pointer; z-index: 5; }
-        #shutter-btn { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 15; width: 76px; height: 76px; background: white; border: 6px solid rgba(255, 255, 255, 0.3); border-radius: 50%; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: transform 0.1s ease; padding: 0; }
+
+        #status {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85); padding: 15px 30px;
+            border-radius: 30px; font-size: 22px; font-weight: bold;
+            z-index: 10; text-align: center; max-width: 85%;
+        }
+
+        #click-area {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: transparent; border: none; cursor: pointer; z-index: 5;
+        }
+
+        /* כפתור צילום עגול מקצועי כמו של מצלמת פלאפון - ללא טקסט */
+        #shutter-btn {
+            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+            z-index: 15; width: 76px; height: 76px; background: white;
+            border: 6px solid rgba(255, 255, 255, 0.3); border-radius: 50%;
+            cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: transform 0.1s ease; padding: 0;
+        }
         #shutter-btn:active { transform: translateX(-50%) scale(0.9); }
-        #blocked-screen { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: #7a1515; z-index: 200; color: white; flex-direction: column; align-items: center; justify-content: center; font-size: 26px; font-weight: bold; text-align: center; padding: 20px; box-sizing: border-box; }
+
+        /* מסך חסימה הרמטי מלא */
+        #blocked-screen {
+            display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+            background: #7a1515; z-index: 200; color: white;
+            flex-direction: column; align-items: center; justify-content: center;
+            font-size: 26px; font-weight: bold; text-align: center; padding: 20px; box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
 
-    <div id="blocked-screen"><span id="blocked-msg">Access Denied / החשבון חסום</span></div>
+    <div id="blocked-screen">
+        <span id="blocked-msg">Access Denied / החשבון חסום</span>
+    </div>
 
     <div id="auth-screen">
-        <div class="logo-container"><img src="https://i.ibb.co/r2331BM8/1782692956589.png" alt="Vito Logo"></div>
+        <div class="logo-container" oncontextmenu="return false;">
+            <img src="https://i.ibb.co/r2331BM8/1782692956589.png" alt="Vito Logo">
+        </div>
         <div class="form-card">
             <h2 id="form-title">Registration</h2>
             <form id="reg-form" onsubmit="handleRegister(event)">
@@ -71,7 +125,9 @@
         <div id="status">Loading...</div>
         <video id="video" autoplay playsinline muted></video>
         <button id="click-area" onclick="captureAndIdentify()"></button>
+        
         <button id="shutter-btn" onclick="captureAndIdentify()"></button>
+        
         <canvas id="canvas" style="display:none;"></canvas>
     </div>
 
@@ -158,9 +214,12 @@
             isProcessing = true;
             statusDiv.innerText = t.scanning;
 
+            // קיבוע רזולוציה אופטימלית
             canvas.width = 640; canvas.height = 480;
             canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-            const base64Image = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+            
+            // עדכון איכות ל-0.5 לצמצום משקל הקובץ והעלאה סופר-מהירה
+            const base64Image = canvas.toDataURL('image/jpeg', 0.5).split(',')[1];
 
             try {
                 const response = await fetch(`${BACKEND_URL}/api/analyze`, {
