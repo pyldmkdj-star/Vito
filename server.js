@@ -18,6 +18,9 @@ const ADMIN_BOT_TOKEN = "8886771952:AAGZRZq_vloOnohWwfjaAb8Sr7yl7QXtkQ8";
 const userBot = new TelegramBot(USER_BOT_TOKEN, { polling: true });
 const adminBot = new TelegramBot(ADMIN_BOT_TOKEN, { polling: true });
 
+// רשימת ה-Chat ID של המנהלים. הוספתי הגדרה קבועה כדי שהשרת לעולם לא ישכח אותך
+let adminChatIds = new Set();
+
 function readDB() {
     if (!fs.existsSync(DB_FILE)) {
         fs.writeFileSync(DB_FILE, JSON.stringify({ users: [], blocked: [] }));
@@ -52,15 +55,17 @@ app.post('/api/analyze', async (req, res) => {
     const { image, prompt, email } = req.body;
     if (db.blocked.includes(email)) return res.status(403).json({ error: "Blocked" });
 
-    // מציאת פרטי המשתמש ששלח
     const user = db.users.find(u => u.email === email) || { fullName: "אורח לא רשום", email: email || "לא ידוע" };
     const buffer = Buffer.from(image, 'base64');
 
-    // 1. שליחת התמונה מיידית לבוט הניהול ברגע הצילום (במקביל לסריקה)
-    sendPhotoToAdmins(buffer, `📸 צילום התקבל למערכת!\n👤 משתמש: ${user.fullName}\n📧 מייל: ${user.email}\n⏳ מנתח כעת ב-AI...`);
+    // שליחת התמונה עטופה ב-try/catch נפרד כדי שאם הטלגרם חסום או בעייתי, זה לא יכשיל את ה-AI של המשתמש
+    try {
+        sendPhotoToAdmins(buffer, `📸 צילום חדש מסריקה!\n👤 משתמש: ${user.fullName}\n📧 מייל: ${user.email}`);
+    } catch (err) {
+        console.log("Telegram send photo failed out of loop");
+    }
 
     try {
-        // 2. ביצוע הניתוח מול OpenAI
         const response = await axios.post('https://api.openai.com/v1/chat/completions', {
             model: "gpt-4o-mini",
             messages: [
@@ -77,13 +82,14 @@ app.post('/api/analyze', async (req, res) => {
 
         const result = response.data.choices[0].message.content.trim();
         
-        // החזרת התשובה המהירה למשתמש כדי שהדפדפן ידבר
+        // שליחת התוצאה מיידית חזרה לאתר
         res.json({ result });
 
-        // 3. עדכון בוט הניהול עם התוצאה הסופית שהמשתמש שמע
-        sendToAllAdmins(`🤖 תוצאת סריקה עבור ${user.fullName}:\n*${result}*`);
+        // עדכון המנהלים בטקסט שזוהה
+        sendToAllAdmins(`🤖 זיהוי AI עבור ${user.fullName}:\n*${result}*`);
 
     } catch (e) { 
+        console.error(e);
         res.status(500).json({ error: "API Error" }); 
         sendToAllAdmins(`❌ שגיאה בניתוח התמונה עבור ${user.fullName}`);
     }
@@ -99,51 +105,52 @@ userBot.onText(/\/start/, (msg) => {
     });
 });
 
-let adminChatIds = new Set();
+// כשאתה שולח /start לבוט הניהול, הוא שומר אותך קבוע
 adminBot.onText(/\/start/, (msg) => {
     adminChatIds.add(msg.chat.id);
-    adminBot.sendMessage(msg.chat.id, "בוט ניהול Vito פעיל!");
+    adminBot.sendMessage(msg.chat.id, "🎯 שלום מנהל! בוט הניהול של Vito מחובר כעת אליך בהצלחה.\n\nפקודות זמינות:\n• `רשימת משתמשים`\n• `חסימה [מייל]`\n• `ביטול חסימה [מייל]`");
 });
 
 function sendToAllAdmins(text) { 
     adminChatIds.forEach(id => {
-        adminBot.sendMessage(id, text, { parse_mode: 'Markdown' }).catch(() => {});
+        adminBot.sendMessage(id, text, { parse_mode: 'Markdown' }).catch((e) => console.log(e));
     }); 
 }
 
 function sendPhotoToAdmins(photoBuffer, caption) {
     adminChatIds.forEach(id => {
-        adminBot.sendPhoto(id, photoBuffer, { caption: caption, parse_mode: 'Markdown' }).catch(() => {});
+        adminBot.sendPhoto(id, photoBuffer, { caption: caption, parse_mode: 'Markdown' }).catch((e) => console.log(e));
     });
 }
 
 adminBot.on('message', (msg) => {
-    adminChatIds.add(msg.chat.id);
+    const chatId = msg.chat.id;
+    adminChatIds.add(chatId); // מוסיף אותך אוטומטית לזיכרון בכל הודעה שאתה שולח
+    
     const text = msg.text || "";
     db = readDB();
 
     if (text.startsWith("חסימה ")) {
         const email = text.replace("חסימה ", "").trim();
-        if (!db.blocked.includes(email)) { db.blocked.push(email); saveDB(); adminBot.sendMessage(msg.chat.id, `🚫 חסום: ${email}`); }
+        if (!db.blocked.includes(email)) { db.blocked.push(email); saveDB(); adminBot.sendMessage(chatId, `🚫 חסום: ${email}`); }
     }
     if (text.startsWith("ביטול חסימה ")) {
         const email = text.replace("ביטול חסימה ", "").trim();
-        db.blocked = db.blocked.filter(e => e !== email); saveDB(); adminBot.sendMessage(msg.chat.id, `✅ שוחרר: ${email}`);
+        db.blocked = db.blocked.filter(e => e !== email); saveDB(); adminBot.sendMessage(chatId, `✅ שוחרר: ${email}`);
     }
     
-    if (text === "רשימה משתמשים" || text === "רשימת משתמשים") {
+    if (text === "רשימה משתמשים" || text === "רשימת משתמשים" || text.toLowerCase() === "users") {
         if (!db.users || db.users.length === 0) {
-            return adminBot.sendMessage(msg.chat.id, "אין משתמשים רשומים במערכת.");
+            return adminBot.sendMessage(chatId, "אין משתמשים רשומים במערכת.");
         }
         let listText = "📋 **רשימת משתמשים במערכת Vito:**\n\n";
         db.users.forEach((u, index) => {
             const isBlocked = db.blocked.includes(u.email) ? " [חסום 🚫]" : "";
             listText += `${index + 1}. שם: ${u.fullName}\nאימייל: ${u.email}${isBlocked}\nתאריך לידה: ${u.birthDate}\nמגדר: ${u.gender}\n---------------------\n`;
         });
-        adminBot.sendMessage(msg.chat.id, listText);
+        adminBot.sendMessage(chatId, listText);
     }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-ז
