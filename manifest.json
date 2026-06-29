@@ -1,0 +1,17 @@
+{
+  "short_name": "Vito",
+  "name": "Vito - AI Assistant",
+  "icons": [
+    {
+      "src": "https://i.ibb.co/r2331BM8/1782692956589.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": ".",
+  "background_color": "#121212",
+  "theme-color": "#121212",
+  "display": "standalone",
+  "orientation": "portrait"
+}
