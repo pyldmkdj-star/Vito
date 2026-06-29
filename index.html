@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <title>Vito – Smart AI Assistant for the Blind and Visually Impaired</title>
     
-    <meta name="description" content="Vito is an easy-to-use app designed to give independence back to the elderly and visually impaired.">
-    <meta name="keywords" content="accessibility for blind, app for visually impaired, object recognition voice, AI for blind, נגישות לעיוורים, אפליקציה לכבדי ראייה, זיהוי חפצים קולי">
+    <meta name="description" content="Vito is an easy-to-use app designed to give independence back to the elderly and visually impaired. Simply open the app, tap the screen, and our smart AI instantly recognizes the object in front of you and reads its name out loud in clear Hebrew. No complex menus, no hassle—just instant visual support at your fingertips.">
+    <meta name="keywords" content="Vito, Vito app, accessibility for blind, app for visually impaired, object recognition voice, AI for blind, elderly support app, image to speech, נגישות לעיוורים, אפליקציה לכבדי ראייה, זיהוי חפצים קולי, עזרה לקשישים, בינה מלאכותית לעיוורים, עוזר קולי, accesibilidad para ciegos, app para discapacitados visuales, reconocimiento de objetos por voz, IA para ciegos, доступность для слепых, приложение для слабовидящих, распознавание объектов голосом, ИИ для слепых, إمكانية الوصول للمكفوفين, تطبيق لضعاف البصر, التعرف على الأشياء بالصوت, الذكاء الاصطناعي للمكفوفين, accessibilité pour aveugles, application malvoyants, reconnaissance d'objets vocale, IA pour aveugles, Barrierefreiheit für Blinde, App für Sehbehinderte, Objekterkennung Sprache, KI für Blinde, acessibilidade para cegos, aplicativo para deficientes visuais, reconhecimento de objetos por voz, accessibilità per ciechi, app per ipovedenti, riconoscimento oggetti vocale, IA per ciechi, अंधों के लिए ऐप, दृष्टिबाधित सहायता, आवाज से वस्तु पहचान, एआई सहायक">
 
     <style>
         :root {
@@ -87,7 +88,6 @@
             background: transparent; border: none; cursor: pointer; z-index: 5;
         }
 
-        /* התאמה לרספונסיביות של מסכים גדולים (טאבלטים/מחשבים) */
         @media (min-width: 768px) {
             #status { font-size: 24px; top: 40px; }
             .logo-container { top: 25px; left: 25px; }
@@ -138,24 +138,21 @@
     </div>
 
     <script>
-        // כתובת שרת ה-Backend החינמי שלך (נשנה אותה אחרי שתקים אותו ב-Render)
-        const BACKEND_URL = "https://YOUR-BACKEND-URL.onrender.com"; 
+        // הקישור המעודכן האמיתי שלך מ-Render
+        const BACKEND_URL = "https://vito-ck9h.onrender.com"; 
 
-        // מערכת תרגום מובנית לפי שפות
         const translations = {
-            he: { title: "הרשמה למערכת", name: "שם מלא", email: "אימייל", date: "תאריך לידה", gender: "מגדר", select: "בחר...", male: "זכר", female: "נקبة", submit: "התחל להשתמש ב-Vito", ready: "המערכת מוכנה! לחץ בכל מקום לזיהוי חפץ", scanning: "מנתח תמונה...", errorCam: "שגיאה בגישה למצלמה", blocked: "חשבונך חסום במערכת. אנא פנה למנהל.", langCode: "he-IL", prompt: "תגיד לי מהו החפץ המרכזי בתמונה. ענה אך ורק בשם החפץ בעברית, מקסימום 2-3 מילים." },
+            he: { title: "הרשמה למערכת", name: "שם מלא", email: "אימייל", date: "תאריך לידה", gender: "מגדר", select: "בחר...", male: "זכר", female: "נקבה", submit: "התחל להשתמש ב-Vito", ready: "המערכת מוכנה! לחץ בכל מקום לזיהוי חפץ", scanning: "מנתח תמונה...", errorCam: "שגיאה בגישה למצלמה", blocked: "חשבונך חסום במערכת. אנא פנה למנהל.", langCode: "he-IL", prompt: "תגיד לי מהו החפץ המרכזי או המוצר שנמצא בתמונה הזו. תענה אך ורק בשם החפץ בעברית, מקסימום 2-3 מילים, בלי סימני פיסוק ובלי הקדמות." },
             en: { title: "Registration", name: "Full Name", email: "Email", date: "Birth Date", gender: "Gender", select: "Select...", male: "Male", female: "Female", submit: "Start using Vito", ready: "Vito is ready! Tap anywhere to scan", scanning: "Analyzing...", errorCam: "Camera error", blocked: "Your account has been blocked.", langCode: "en-US", prompt: "What is the main object in this image? Reply only with the object name in English, max 2-3 words." },
             ar: { title: "التسجيل", name: "الاسم الكامل", email: "البريد الإلكتروني", date: "تاريخ الميلاد", gender: "الجنس", select: "اختر...", male: "ذكر", female: "أنثى", submit: "ابدأ استخدام فيتو", ready: "فيتو جاهز! اضغط في أي مكان للمسح", scanning: "جاري التحليل...", errorCam: "خطأ في الكاميرا", blocked: "تم حظر حسابك.", langCode: "ar-SA", prompt: "ما هو الشيء الرئيسي في هذه الصورة؟ أجب فقط باسم الشيء باللغة العربية ، بحد أقصى 2-3 كلمات." },
             ru: { title: "Регистрация", name: "Полное имя", email: "Email", date: "Дата рождения", gender: "Пол", select: "Выбрать...", male: "Мужской", female: "Женский", submit: "Начать использовать Vito", ready: "Vito готов! Нажмите в любом месте", scanning: "Анализ...", errorCam: "Ошибка камеры", blocked: "Ваш аккаунт заблокирован.", langCode: "ru-RU", prompt: "Что это за предмет? Ответьте только названием предмета на русском языке, максимум 2-3 слова." },
             es: { title: "Registro", name: "Nombre Completo", email: "Correo", date: "Fecha de nacimiento", gender: "Género", select: "Seleccionar...", male: "Masculino", female: "Femenino", submit: "Comenzar a usar Vito", ready: "¡Vito está listo! Toca en cualquier lugar", scanning: "Analizando...", errorCam: "Error de cámara", blocked: "Tu cuenta ha sido bloqueada.", langCode: "es-ES", prompt: "¿Cuál es el objeto principal? Responde solo con el nombre del objeto en español, máx 2-3 palabras." }
         };
 
-        // זיהוי שפת המשתמש (אם לא קיימת ברשימה, ברירת מחדל אנגלית)
         const userLang = navigator.language.substring(0, 2);
         const currentLang = translations[userLang] ? userLang : 'en';
         const t = translations[currentLang];
 
-        // החלת השפה על ממשק המשתמש
         document.documentElement.lang = currentLang;
         document.documentElement.dir = currentLang === 'he' || currentLang === 'ar' ? 'rtl' : 'ltr';
         document.getElementById('form-title').innerText = t.title;
@@ -174,11 +171,9 @@
         const statusDiv = document.getElementById('status');
         let isProcessing = false;
 
-        // בדיקה האם המשתמש כבר רשום במערכת
         window.addEventListener('load', async () => {
             const savedEmail = localStorage.getItem('vito_user_email');
             if (savedEmail) {
-                // בדיקה מול השרת שהוא לא חסום
                 const isBlocked = await checkBlockStatus(savedEmail);
                 if (isBlocked) {
                     alert(t.blocked);
@@ -197,7 +192,6 @@
             } catch (e) { return false; }
         }
 
-        // שליחת טופס הרשמה
         async function handleRegister(e) {
             e.preventDefault();
             const userData = {
@@ -221,7 +215,6 @@
                     alert("Registration failed. Account might be blocked.");
                 }
             } catch (err) {
-                // למקרה בדיקות זמני בלי שרת:
                 localStorage.setItem('vito_user_email', userData.email);
                 showApp();
             }
@@ -247,7 +240,6 @@
         async function captureAndIdentify() {
             if (isProcessing) return;
             
-            // בדיקת חסימה מהירה לפני צילום
             const email = localStorage.getItem('vito_user_email');
             if (await checkBlockStatus(email)) {
                 statusDiv.innerText = t.blocked;
@@ -263,7 +255,6 @@
             const base64Image = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
 
             try {
-                // אנחנו שולחים את הבקשה לשרת ה-Backend שלנו במקום ישירות ל-OpenAI (כדי להגן על המפתח!)
                 const response = await fetch(`${BACKEND_URL}/api/analyze`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
