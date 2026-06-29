@@ -17,92 +17,38 @@
             --text-color: #ffffff;
             --accent-color: #007bff;
         }
-        
         body {
-            margin: 0; padding: 0;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            margin: 0; padding: 0; background-color: var(--bg-color); color: var(--text-color);
             font-family: system-ui, -apple-system, sans-serif;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             min-height: 100vh; overflow: hidden;
         }
-
-        .logo-container {
-            margin-bottom: 20px;
-            text-align: center;
-            user-select: none; -webkit-user-drag: none;
-        }
-        .logo-container img { width: 80px; height: auto; pointer-events: none; }
-
+        .logo-container { margin-bottom: 20px; text-align: center; user-select: none; }
+        .logo-container img { width: 80px; height: auto; }
         #auth-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-color); z-index: 100;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 20px; box-sizing: border-box;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 100;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;
         }
-
-        .form-card {
-            background: var(--card-bg); padding: 30px; border-radius: 15px;
-            width: 100%; max-width: 450px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-
+        .form-card { background: var(--card-bg); padding: 30px; border-radius: 15px; width: 100%; max-width: 450px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         .form-group { margin-bottom: 20px; display: flex; flex-direction: column; }
         label { margin-bottom: 8px; font-weight: bold; }
-        input, select {
-            padding: 12px; border-radius: 8px; border: 1px solid #444;
-            background: #333; color: white; font-size: 16px; width: 100%; box-sizing: border-box;
-        }
-
-        button.submit-btn {
-            width: 100%; padding: 14px; background: var(--accent-color);
-            border: none; border-radius: 8px; color: white; font-size: 18px;
-            font-weight: bold; cursor: pointer;
-        }
-
+        input, select { padding: 12px; border-radius: 8px; border: 1px solid #444; background: #333; color: white; font-size: 16px; width: 100%; box-sizing: border-box; }
+        button.submit-btn { width: 100%; padding: 14px; background: var(--accent-color); border: none; border-radius: 8px; color: white; font-size: 18px; font-weight: bold; cursor: pointer; }
         #main-app { display: none; width: 100%; height: 100vh; position: relative; }
         #video { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
-
-        #status {
-            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.85); padding: 15px 30px;
-            border-radius: 30px; font-size: 22px; font-weight: bold;
-            z-index: 10; text-align: center; max-width: 85%;
-        }
-
-        #click-area {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: transparent; border: none; cursor: pointer; z-index: 5;
-        }
-
-        /* כפתור צילום עגול מקצועי כמו של מצלמת פלאפון - ללא טקסט */
-        #shutter-btn {
-            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
-            z-index: 15; width: 76px; height: 76px; background: white;
-            border: 6px solid rgba(255, 255, 255, 0.3); border-radius: 50%;
-            cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            transition: transform 0.1s ease; padding: 0;
-        }
+        #status { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.85); padding: 15px 30px; border-radius: 30px; font-size: 22px; font-weight: bold; z-index: 10; text-align: center; max-width: 85%; }
+        #click-area { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; border: none; cursor: pointer; z-index: 5; }
+        #shutter-btn { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 15; width: 76px; height: 76px; background: white; border: 6px solid rgba(255, 255, 255, 0.3); border-radius: 50%; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: transform 0.1s ease; padding: 0; }
         #shutter-btn:active { transform: translateX(-50%) scale(0.9); }
-
-        /* מסך חסימה הרמטי מלא */
-        #blocked-screen {
-            display: none; position: fixed; top:0; left:0; width:100%; height:100%;
-            background: #7a1515; z-index: 200; color: white;
-            flex-direction: column; align-items: center; justify-content: center;
-            font-size: 26px; font-weight: bold; text-align: center; padding: 20px; box-sizing: border-box;
-        }
+        #blocked-screen { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: #7a1515; z-index: 200; color: white; flex-direction: column; align-items: center; justify-content: center; font-size: 26px; font-weight: bold; text-align: center; padding: 20px; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
-    <div id="blocked-screen">
-        <span id="blocked-msg">Access Denied / החשבון חסום</span>
-    </div>
+    <div id="blocked-screen"><span id="blocked-msg">Access Denied / החשבון חסום</span></div>
 
     <div id="auth-screen">
-        <div class="logo-container" oncontextmenu="return false;">
-            <img src="https://i.ibb.co/r2331BM8/1782692956589.png" alt="Vito Logo">
-        </div>
+        <div class="logo-container"><img src="https://i.ibb.co/r2331BM8/1782692956589.png" alt="Vito Logo"></div>
         <div class="form-card">
             <h2 id="form-title">Registration</h2>
             <form id="reg-form" onsubmit="handleRegister(event)">
@@ -125,9 +71,7 @@
         <div id="status">Loading...</div>
         <video id="video" autoplay playsinline muted></video>
         <button id="click-area" onclick="captureAndIdentify()"></button>
-        
         <button id="shutter-btn" onclick="captureAndIdentify()"></button>
-        
         <canvas id="canvas" style="display:none;"></canvas>
     </div>
 
@@ -135,8 +79,8 @@
         const BACKEND_URL = "https://vito-ck9h.onrender.com"; 
 
         const translations = {
-            he: { title: "הרשמה למערכת", name: "שם מלא", email: "אימייל", date: "תאריך לידה", gender: "מגדר", select: "בחר...", male: "זכר", female: "נקבה", submit: "התחל להשתמש ב-Vito", ready: "לחץ לצילום חפץ", scanning: "מנתח תמונה...", errorCam: "שגיאה בגישה למצלמה", blocked: "חשבונך חסום במערכת ולא ניתן להמשיך.", langCode: "he-IL", prompt: "תגיד לי מהו החפץ המרכזי או המוצר שנמצא בתמונה הזו. תענה אך ורק בשם החפץ בעברית, מקסימום 2-3 מילים, בלי סימני פיסוק ובלי הקדמות." },
-            en: { title: "Registration", name: "Full Name", email: "Email", date: "Birth Date", gender: "Gender", select: "Select...", male: "Male", female: "Female", submit: "Start using Vito", ready: "Tap to scan object", scanning: "Analyzing...", errorCam: "Camera error", blocked: "Your account has been blocked.", langCode: "en-US", prompt: "What is the main object in this image? Reply only with the object name in English, max 2-3 words." }
+            he: { title: "הרשמה למערכת", name: "שם מלא", email: "אימייל", date: "תאריך לידה", gender: "מגדר", select: "בחר...", male: "זכר", female: "נקבה", submit: "התחל להשתמש ב-Vito", ready: "לחץ לצילום חפץ", scanning: "מנתח תמונה...", errorCam: "שגיאה בגישה למצלמה", blocked: "חשבונך חסום במערכת ולא ניתן להמשיך.", errorServer: "שגיאה בתקשורת עם השרת", langCode: "he-IL", prompt: "תגיד לי מהו החפץ המרכזי או המוצר שנמצא בתמונה הזו. תענה אך ורק בשם החפץ בעברית, מקסימום 2-3 מילים, בלי סימני פיסוק ובלי הקדמות." },
+            en: { title: "Registration", name: "Full Name", email: "Email", date: "Birth Date", gender: "Gender", select: "Select...", male: "Male", female: "Female", submit: "Start using Vito", ready: "Tap to scan object", scanning: "Analyzing...", errorCam: "Camera error", blocked: "Your account has been blocked.", errorServer: "Server communication error", langCode: "en-US", prompt: "What is the main object in this image? Reply only with the object name in English, max 2-3 words." }
         };
 
         const userLang = navigator.language.substring(0, 2);
@@ -164,10 +108,7 @@
         window.addEventListener('load', async () => {
             const savedEmail = localStorage.getItem('vito_user_email');
             if (savedEmail) {
-                if (await checkBlockStatus(savedEmail)) {
-                    triggerBlock();
-                    return;
-                }
+                if (await checkBlockStatus(savedEmail)) { triggerBlock(); return; }
                 showApp();
             }
         });
@@ -183,8 +124,7 @@
         function triggerBlock() {
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'none';
-            const bScreen = document.getElementById('blocked-screen');
-            bScreen.style.display = 'flex';
+            document.getElementById('blocked-screen').style.display = 'flex';
             document.getElementById('blocked-msg').innerText = t.blocked;
         }
 
@@ -196,18 +136,9 @@
                 birthDate: document.getElementById('birthDate').value,
                 gender: document.getElementById('gender').value
             };
-            
-            if (await checkBlockStatus(userData.email)) {
-                triggerBlock();
-                return;
-            }
-
+            if (await checkBlockStatus(userData.email)) { triggerBlock(); return; }
             try {
-                await fetch(`${BACKEND_URL}/api/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(userData)
-                });
+                await fetch(`${BACKEND_URL}/api/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(userData) });
                 localStorage.setItem('vito_user_email', userData.email);
                 showApp();
             } catch (err) {
@@ -216,18 +147,8 @@
             }
         }
 
-        function showApp() {
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('main-app').style.display = 'block';
-            setupCamera();
-        }
-
-        async function setupCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
-                video.srcObject = stream;
-            } catch (err) { statusDiv.innerText = t.errorCam; }
-        }
+        function showApp() { document.getElementById('auth-screen').style.display = 'none'; document.getElementById('main-app').style.display = 'block'; setupCamera(); }
+        async function setupCamera() { try { const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false }); video.srcObject = stream; } catch (err) { statusDiv.innerText = t.errorCam; } }
 
         async function captureAndIdentify() {
             if (isProcessing) return;
@@ -247,24 +168,21 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ image: base64Image, prompt: t.prompt, email: email })
                 });
+                
+                if(!response.ok) throw new Error("Server error");
+                
                 const data = await response.json();
                 if (data.result) {
                     statusDiv.innerText = data.result;
                     speak(data.result);
-                    
-                    // תיקון: מחכה 3 שניות שלמות אחרי קבלת התוצאה והדיבור לפני החזרה לסריקה
-                    setTimeout(() => {
-                        isProcessing = false;
-                        statusDiv.innerText = t.ready;
-                    }, 3000);
+                    setTimeout(() => { isProcessing = false; statusDiv.innerText = t.ready; }, 3000);
                 } else {
-                    isProcessing = false;
-                    statusDiv.innerText = t.ready;
+                    throw new Error("No result");
                 }
             } catch (error) {
-                statusDiv.innerText = "Error";
-                isProcessing = false;
-                setTimeout(() => { statusDiv.innerText = t.ready; }, 1000);
+                statusDiv.innerText = t.errorServer;
+                speak(t.errorServer);
+                setTimeout(() => { isProcessing = false; statusDiv.innerText = t.ready; }, 3000);
             }
         }
 
