@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vito – Smart AI Assistant</title>
     
+    <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
@@ -15,7 +16,6 @@
             --card-bg: #1e1e1e;
             --text-color: #ffffff;
             --accent-color: #007bff;
-            --btn-capture: #28a745;
         }
         
         body {
@@ -27,7 +27,6 @@
             min-height: 100vh; overflow: hidden;
         }
 
-        /* הלוגו מוגדר כעת בתוך ה-auth-screen כדי שייעלם באפליקציה */
         .logo-container {
             margin-bottom: 20px;
             text-align: center;
@@ -66,7 +65,7 @@
         #status {
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
             background: rgba(0, 0, 0, 0.85); padding: 15px 30px;
-            border-radius: 30px; font-size: 20px; font-weight: bold;
+            border-radius: 30px; font-size: 22px; font-weight: bold;
             z-index: 10; text-align: center; max-width: 85%;
         }
 
@@ -75,17 +74,30 @@
             background: transparent; border: none; cursor: pointer; z-index: 5;
         }
 
-        #capture-btn {
+        /* כפתור צילום עגול מקצועי כמו של מצלמת פלאפון - ללא טקסט */
+        #shutter-btn {
             position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
-            z-index: 15; background: var(--btn-capture); color: white;
-            border: none; border-radius: 50px; padding: 16px 40px;
-            font-size: 22px; font-weight: bold; cursor: pointer;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.6);
-            display: flex; align-items: center; gap: 10px;
+            z-index: 15; width: 76px; height: 76px; background: white;
+            border: 6px solid rgba(255, 255, 255, 0.3); border-radius: 50%;
+            cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: transform 0.1s ease; padding: 0;
+        }
+        #shutter-btn:active { transform: translateX(-50%) scale(0.9); }
+
+        /* מסך חסימה הרמטי מלא */
+        #blocked-screen {
+            display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+            background: #7a1515; z-index: 200; color: white;
+            flex-direction: column; align-items: center; justify-content: center;
+            font-size: 26px; font-weight: bold; text-align: center; padding: 20px; box-sizing: border-box;
         }
     </style>
 </head>
 <body>
+
+    <div id="blocked-screen">
+        <span id="blocked-msg">Access Denied / החשבון חסום</span>
+    </div>
 
     <div id="auth-screen">
         <div class="logo-container" oncontextmenu="return false;">
@@ -113,7 +125,9 @@
         <div id="status">Loading...</div>
         <video id="video" autoplay playsinline muted></video>
         <button id="click-area" onclick="captureAndIdentify()"></button>
-        <button id="capture-btn" onclick="captureAndIdentify()">📸 <span id="btn-snap-text">Scan Object</span></button>
+        
+        <button id="shutter-btn" onclick="captureAndIdentify()"></button>
+        
         <canvas id="canvas" style="display:none;"></canvas>
     </div>
 
@@ -121,8 +135,8 @@
         const BACKEND_URL = "https://vito-ck9h.onrender.com"; 
 
         const translations = {
-            he: { title: "הרשמה למערכת", name: "שם מלא", email: "אימייל", date: "תאריך לידה", gender: "מגדר", select: "בחר...", male: "זכר", female: "נקבה", submit: "התחל להשתמש ב-Vito", ready: "המערכת מוכנה! לחץ בכל מקום לזיהוי חפץ", scanning: "מנתח תמונה...", errorCam: "שגיאה בגישה למצלמה", blocked: "חשבונך חסום במערכת.", langCode: "he-IL", snap: "צלם חפץ", prompt: "תגיד לי מהו החפץ המרכזי או המוצר שנמצא בתמונה הזו. תענה אך ורק בשם החפץ בעברית, מקסימום 2-3 מילים, בלי סימני פיסוק ובלי הקדמות." },
-            en: { title: "Registration", name: "Full Name", email: "Email", date: "Birth Date", gender: "Gender", select: "Select...", male: "Male", female: "Female", submit: "Start using Vito", ready: "Vito is ready! Tap anywhere to scan", scanning: "Analyzing...", errorCam: "Camera error", blocked: "Your account has been blocked.", langCode: "en-US", snap: "Scan Object", prompt: "What is the main object in this image? Reply only with the object name in English, max 2-3 words." }
+            he: { title: "הרשמה למערכת", name: "שם מלא", email: "אימייל", date: "תאריך לידה", gender: "מגדר", select: "בחר...", male: "זכר", female: "נקבה", submit: "התחל להשתמש ב-Vito", ready: "לחץ לצילום חפץ", scanning: "מנתח תמונה...", errorCam: "שגיאה בגישה למצלמה", blocked: "חשבונך חסום במערכת ולא ניתן להמשיך.", langCode: "he-IL", prompt: "תגיד לי מהו החפץ המרכזי או המוצר שנמצא בתמונה הזו. תענה אך ורק בשם החפץ בעברית, מקסימום 2-3 מילים, בלי סימני פיסוק ובלי הקדמות." },
+            en: { title: "Registration", name: "Full Name", email: "Email", date: "Birth Date", gender: "Gender", select: "Select...", male: "Male", female: "Female", submit: "Start using Vito", ready: "Tap to scan object", scanning: "Analyzing...", errorCam: "Camera error", blocked: "Your account has been blocked.", langCode: "en-US", prompt: "What is the main object in this image? Reply only with the object name in English, max 2-3 words." }
         };
 
         const userLang = navigator.language.substring(0, 2);
@@ -141,7 +155,6 @@
         document.getElementById('opt-female').innerText = t.female;
         document.getElementById('btn-submit').innerText = t.submit;
         document.getElementById('status').innerText = t.ready;
-        document.getElementById('btn-snap-text').innerText = t.snap;
 
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
@@ -152,7 +165,7 @@
             const savedEmail = localStorage.getItem('vito_user_email');
             if (savedEmail) {
                 if (await checkBlockStatus(savedEmail)) {
-                    statusDiv.innerText = t.blocked;
+                    triggerBlock();
                     return;
                 }
                 showApp();
@@ -167,6 +180,14 @@
             } catch (e) { return false; }
         }
 
+        function triggerBlock() {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('main-app').style.display = 'none';
+            const bScreen = document.getElementById('blocked-screen');
+            bScreen.style.display = 'flex';
+            document.getElementById('blocked-msg').innerText = t.blocked;
+        }
+
         async function handleRegister(e) {
             e.preventDefault();
             const userData = {
@@ -175,6 +196,12 @@
                 birthDate: document.getElementById('birthDate').value,
                 gender: document.getElementById('gender').value
             };
+            
+            if (await checkBlockStatus(userData.email)) {
+                triggerBlock();
+                return;
+            }
+
             try {
                 await fetch(`${BACKEND_URL}/api/register`, {
                     method: 'POST',
@@ -205,7 +232,7 @@
         async function captureAndIdentify() {
             if (isProcessing) return;
             const email = localStorage.getItem('vito_user_email');
-            if (await checkBlockStatus(email)) { statusDiv.innerText = t.blocked; return; }
+            if (await checkBlockStatus(email)) { triggerBlock(); return; }
 
             isProcessing = true;
             statusDiv.innerText = t.scanning;
@@ -224,11 +251,20 @@
                 if (data.result) {
                     statusDiv.innerText = data.result;
                     speak(data.result);
+                    
+                    // תיקון: מחכה 3 שניות שלמות אחרי קבלת התוצאה והדיבור לפני החזרה לסריקה
+                    setTimeout(() => {
+                        isProcessing = false;
+                        statusDiv.innerText = t.ready;
+                    }, 3000);
+                } else {
+                    isProcessing = false;
+                    statusDiv.innerText = t.ready;
                 }
             } catch (error) {
                 statusDiv.innerText = "Error";
-            } finally {
-                setTimeout(() => { isProcessing = false; statusDiv.innerText = t.ready; }, 1500);
+                isProcessing = false;
+                setTimeout(() => { statusDiv.innerText = t.ready; }, 1000);
             }
         }
 
