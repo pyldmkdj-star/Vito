@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const fs = require('fs');
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
-const { Readable } = require('stream'); // הוספת ספריית סטרימים מובנית
+const { Readable } = require('stream');
 
 const app = express();
 app.use(cors());
@@ -50,6 +50,7 @@ app.post('/api/register', (req, res) => {
     res.sendStatus(200);
 });
 
+// ניתוח מהיר ללא עיכובים
 app.post('/api/analyze', async (req, res) => {
     db = readDB();
     const { image, prompt, email } = req.body;
@@ -58,14 +59,17 @@ app.post('/api/analyze', async (req, res) => {
     const user = db.users.find(u => u.email === email) || { fullName: "אורח לא רשום", email: email || "לא ידוע" };
     const buffer = Buffer.from(image, 'base64');
 
-    // שליחת התמונה עטופה בצורה בטוחה שלא תוקעת את השרת
-    try {
-        sendPhotoToAdmins(buffer, `📸 צילום חדש מסריקה!\n👤 משתמש: ${user.fullName}\n📧 מייל: ${user.email}`);
-    } catch (err) {
-        console.log("Telegram send photo crashed:", err.message);
-    }
+    // פה הקסם: שליחת התמונה לטלגרם מתבצעת ברקע. הקוד ממשיך ישר הלאה ל-OpenAI ולא מחכה לטלגרם!
+    setImmediate(() => {
+        try {
+            sendPhotoToAdmins(buffer, `📸 צילום חדש מסריקה!\n👤 משתמש: ${user.fullName}\n📧 מייל: ${user.email}`);
+        } catch (err) {
+            console.log("Background Telegram photo send failed:", err.message);
+        }
+    });
 
     try {
+        // פנייה ישירה ומהירה ל-OpenAI
         const response = await axios.post('https://api.openai.com/v1/chat/completions', {
             model: "gpt-4o-mini",
             messages: [
@@ -82,13 +86,20 @@ app.post('/api/analyze', async (req, res) => {
 
         const result = response.data.choices[0].message.content.trim();
         
+        // החזרת תשובה מיידית לאתר
         res.json({ result });
-        sendToAllAdmins(`🤖 זיהוי AI עבור ${user.fullName}:\n*${result}*`);
+
+        // שליחת הטקסט לניהול גם כן קורה ברקע לאחר מכן
+        setImmediate(() => {
+            sendToAllAdmins(`🤖 זיהוי AI עבור ${user.fullName}:\n*${result}*`);
+        });
 
     } catch (e) { 
-        console.error("OpenAI or Global Error:", e.message);
-        res.status(500).json({ error: "API Error", details: e.message }); 
-        sendToAllAdmins(`❌ שגיאה בניתוח התמונה עבור ${user.fullName}`);
+        console.error("OpenAI Error:", e.message);
+        res.status(500).json({ error: "API Error" }); 
+        setImmediate(() => {
+            sendToAllAdmins(`❌ שגיאה בניתוח התמונה עבור ${user.fullName}`);
+        });
     }
 });
 
@@ -113,7 +124,6 @@ function sendToAllAdmins(text) {
     }); 
 }
 
-// תיקון קריטי: המרת הבאפר לסטרים עם שם קובץ פיקטיבי כדי שטלגרם יקבל את זה בהצלחה
 function sendPhotoToAdmins(photoBuffer, caption) {
     adminChatIds.forEach(id => {
         const stream = Readable.from(photoBuffer);
