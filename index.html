@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vito – Smart AI Assistant for the Blind and Visually Impaired</title>
+    
+    <meta name="description" content="Vito is an easy-to-use app designed to give independence back to the elderly and visually impaired.">
+    <meta name="keywords" content="accessibility for blind, app for visually impaired, object recognition voice, AI for blind, נגישות לעיוורים, אפליקציה לכבדי ראייה, זיהוי חפצים קולי">
+
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #ffffff;
+            --accent-color: #007bff;
+            --error-color: #ff3333;
+        }
+        
+        body {
+            margin: 0; padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; overflow: hidden;
+        }
+
+        /* הגנה על הלוגו */
+        .logo-container {
+            position: absolute; top: 15px; left: 15px; z-index: 20;
+            user-select: none; -webkit-user-drag: none;
+        }
+        .logo-container img {
+            width: 60px; height: auto; pointer-events: none;
+        }
+
+        /* מסך טופס הרשמה */
+        #auth-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color); z-index: 100;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; box-sizing: border-box; overflow-y: auto;
+        }
+
+        .form-card {
+            background: var(--card-bg); padding: 30px; border-radius: 15px;
+            width: 100%; max-width: 450px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            box-sizing: border-box;
+        }
+
+        h2 { margin-top: 0; text-align: center; }
+
+        .form-group { margin-bottom: 20px; display: flex; flex-direction: column; }
+        label { margin-bottom: 8px; font-weight: bold; }
+        input, select {
+            padding: 12px; border-radius: 8px; border: 1px solid #444;
+            background: #333; color: white; font-size: 16px; width: 100%; box-sizing: border-box;
+        }
+
+        button.submit-btn {
+            width: 100%; padding: 14px; background: var(--accent-color);
+            border: none; border-radius: 8px; color: white; font-size: 18px;
+            font-weight: bold; cursor: pointer; transition: background 0.2s;
+        }
+
+        /* מסך מצלמה ראשי */
+        #main-app {
+            display: none; width: 100%; height: 100vh; position: relative;
+        }
+
+        #video {
+            width: 100%; height: 100%; object-fit: cover;
+            position: absolute; top: 0; left: 0; z-index: 1;
+        }
+
+        #status {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85); padding: 15px 30px;
+            border-radius: 30px; font-size: 20px; font-weight: bold;
+            z-index: 10; text-align: center; max-width: 85%;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        #click-area {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: transparent; border: none; cursor: pointer; z-index: 5;
+        }
+
+        /* התאמה לרספונסיביות של מסכים גדולים (טאבלטים/מחשבים) */
+        @media (min-width: 768px) {
+            #status { font-size: 24px; top: 40px; }
+            .logo-container { top: 25px; left: 25px; }
+            .logo-container img { width: 80px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="logo-container" oncontextmenu="return false;">
+        <img src="https://i.ibb.co/r2331BM8/1782692956589.png" alt="Vito Logo">
+    </div>
+
+    <div id="auth-screen">
+        <div class="form-card">
+            <h2 id="form-title">Registration</h2>
+            <form id="reg-form" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label id="lbl-name" for="fullName">Full Name</label>
+                    <input type="text" id="fullName" required>
+                </div>
+                <div class="form-group">
+                    <label id="lbl-email" for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label id="lbl-date" for="birthDate">Birth Date</label>
+                    <input type="date" id="birthDate" required>
+                </div>
+                <div class="form-group">
+                    <label id="lbl-gender" for="gender">Gender</label>
+                    <select id="gender" required>
+                        <option value="" id="opt-select">Select...</option>
+                        <option value="Male" id="opt-male">Male</option>
+                        <option value="Female" id="opt-female">Female</option>
+                    </select>
+                </div>
+                <button type="submit" class="submit-btn" id="btn-submit">Start using Vito</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="main-app">
+        <div id="status">Loading...</div>
+        <video id="video" autoplay playsinline muted></video>
+        <button id="click-area" onclick="captureAndIdentify()"></button>
+        <canvas id="canvas" style="display:none;"></canvas>
+    </div>
+
+    <script>
+        // כתובת שרת ה-Backend החינמי שלך (נשנה אותה אחרי שתקים אותו ב-Render)
+        const BACKEND_URL = "https://YOUR-BACKEND-URL.onrender.com"; 
+
+        // מערכת תרגום מובנית לפי שפות
+        const translations = {
+            he: { title: "הרשמה למערכת", name: "שם מלא", email: "אימייל", date: "תאריך לידה", gender: "מגדר", select: "בחר...", male: "זכר", female: "נקبة", submit: "התחל להשתמש ב-Vito", ready: "המערכת מוכנה! לחץ בכל מקום לזיהוי חפץ", scanning: "מנתח תמונה...", errorCam: "שגיאה בגישה למצלמה", blocked: "חשבונך חסום במערכת. אנא פנה למנהל.", langCode: "he-IL", prompt: "תגיד לי מהו החפץ המרכזי בתמונה. ענה אך ורק בשם החפץ בעברית, מקסימום 2-3 מילים." },
+            en: { title: "Registration", name: "Full Name", email: "Email", date: "Birth Date", gender: "Gender", select: "Select...", male: "Male", female: "Female", submit: "Start using Vito", ready: "Vito is ready! Tap anywhere to scan", scanning: "Analyzing...", errorCam: "Camera error", blocked: "Your account has been blocked.", langCode: "en-US", prompt: "What is the main object in this image? Reply only with the object name in English, max 2-3 words." },
+            ar: { title: "التسجيل", name: "الاسم الكامل", email: "البريد الإلكتروني", date: "تاريخ الميلاد", gender: "الجنس", select: "اختر...", male: "ذكر", female: "أنثى", submit: "ابدأ استخدام فيتو", ready: "فيتو جاهز! اضغط في أي مكان للمسح", scanning: "جاري التحليل...", errorCam: "خطأ في الكاميرا", blocked: "تم حظر حسابك.", langCode: "ar-SA", prompt: "ما هو الشيء الرئيسي في هذه الصورة؟ أجب فقط باسم الشيء باللغة العربية ، بحد أقصى 2-3 كلمات." },
+            ru: { title: "Регистрация", name: "Полное имя", email: "Email", date: "Дата рождения", gender: "Пол", select: "Выбрать...", male: "Мужской", female: "Женский", submit: "Начать использовать Vito", ready: "Vito готов! Нажмите в любом месте", scanning: "Анализ...", errorCam: "Ошибка камеры", blocked: "Ваш аккаунт заблокирован.", langCode: "ru-RU", prompt: "Что это за предмет? Ответьте только названием предмета на русском языке, максимум 2-3 слова." },
+            es: { title: "Registro", name: "Nombre Completo", email: "Correo", date: "Fecha de nacimiento", gender: "Género", select: "Seleccionar...", male: "Masculino", female: "Femenino", submit: "Comenzar a usar Vito", ready: "¡Vito está listo! Toca en cualquier lugar", scanning: "Analizando...", errorCam: "Error de cámara", blocked: "Tu cuenta ha sido bloqueada.", langCode: "es-ES", prompt: "¿Cuál es el objeto principal? Responde solo con el nombre del objeto en español, máx 2-3 palabras." }
+        };
+
+        // זיהוי שפת המשתמש (אם לא קיימת ברשימה, ברירת מחדל אנגלית)
+        const userLang = navigator.language.substring(0, 2);
+        const currentLang = translations[userLang] ? userLang : 'en';
+        const t = translations[currentLang];
+
+        // החלת השפה על ממשק המשתמש
+        document.documentElement.lang = currentLang;
+        document.documentElement.dir = currentLang === 'he' || currentLang === 'ar' ? 'rtl' : 'ltr';
+        document.getElementById('form-title').innerText = t.title;
+        document.getElementById('lbl-name').innerText = t.name;
+        document.getElementById('lbl-email').innerText = t.email;
+        document.getElementById('lbl-date').innerText = t.date;
+        document.getElementById('lbl-gender').innerText = t.gender;
+        document.getElementById('opt-select').innerText = t.select;
+        document.getElementById('opt-male').innerText = t.male;
+        document.getElementById('opt-female').innerText = t.female;
+        document.getElementById('btn-submit').innerText = t.submit;
+        document.getElementById('status').innerText = t.ready;
+
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const statusDiv = document.getElementById('status');
+        let isProcessing = false;
+
+        // בדיקה האם המשתמש כבר רשום במערכת
+        window.addEventListener('load', async () => {
+            const savedEmail = localStorage.getItem('vito_user_email');
+            if (savedEmail) {
+                // בדיקה מול השרת שהוא לא חסום
+                const isBlocked = await checkBlockStatus(savedEmail);
+                if (isBlocked) {
+                    alert(t.blocked);
+                    statusDiv.innerText = t.blocked;
+                    return;
+                }
+                showApp();
+            }
+        });
+
+        async function checkBlockStatus(email) {
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/check-user?email=${encodeURIComponent(email)}`);
+                const data = await res.json();
+                return data.blocked;
+            } catch (e) { return false; }
+        }
+
+        // שליחת טופס הרשמה
+        async function handleRegister(e) {
+            e.preventDefault();
+            const userData = {
+                fullName: document.getElementById('fullName').value,
+                email: document.getElementById('email').value,
+                birthDate: document.getElementById('birthDate').value,
+                gender: document.getElementById('gender').value
+            };
+
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+                
+                if (res.ok) {
+                    localStorage.setItem('vito_user_email', userData.email);
+                    showApp();
+                } else {
+                    alert("Registration failed. Account might be blocked.");
+                }
+            } catch (err) {
+                // למקרה בדיקות זמני בלי שרת:
+                localStorage.setItem('vito_user_email', userData.email);
+                showApp();
+            }
+        }
+
+        function showApp() {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+            setupCamera();
+        }
+
+        async function setupCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "environment" }, audio: false
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                statusDiv.innerText = t.errorCam;
+            }
+        }
+
+        async function captureAndIdentify() {
+            if (isProcessing) return;
+            
+            // בדיקת חסימה מהירה לפני צילום
+            const email = localStorage.getItem('vito_user_email');
+            if (await checkBlockStatus(email)) {
+                statusDiv.innerText = t.blocked;
+                speak(t.blocked);
+                return;
+            }
+
+            isProcessing = true;
+            statusDiv.innerText = t.scanning;
+
+            canvas.width = 640; canvas.height = 480;
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+            const base64Image = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+
+            try {
+                // אנחנו שולחים את הבקשה לשרת ה-Backend שלנו במקום ישירות ל-OpenAI (כדי להגן על המפתח!)
+                const response = await fetch(`${BACKEND_URL}/api/analyze`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: base64Image, prompt: t.prompt })
+                });
+
+                const data = await response.json();
+                if (data.result) {
+                    statusDiv.innerText = data.result;
+                    speak(data.result);
+                }
+            } catch (error) {
+                statusDiv.innerText = "Error";
+            } finally {
+                setTimeout(() => { isProcessing = false; statusDiv.innerText = t.ready; }, 3500);
+            }
+        }
+
+        function speak(text) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = t.langCode;
+            window.speechSynthesis.speak(utterance);
+        }
+    </script>
+</body>
+</html>
