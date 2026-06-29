@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const fs = require('fs');
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
+const { Readable } = require('stream'); // הוספת ספריית סטרימים מובנית
 
 const app = express();
 app.use(cors());
@@ -18,7 +19,6 @@ const ADMIN_BOT_TOKEN = "8886771952:AAGZRZq_vloOnohWwfjaAb8Sr7yl7QXtkQ8";
 const userBot = new TelegramBot(USER_BOT_TOKEN, { polling: true });
 const adminBot = new TelegramBot(ADMIN_BOT_TOKEN, { polling: true });
 
-// רשימת ה-Chat ID של המנהלים. הוספתי הגדרה קבועה כדי שהשרת לעולם לא ישכח אותך
 let adminChatIds = new Set();
 
 function readDB() {
@@ -58,11 +58,11 @@ app.post('/api/analyze', async (req, res) => {
     const user = db.users.find(u => u.email === email) || { fullName: "אורח לא רשום", email: email || "לא ידוע" };
     const buffer = Buffer.from(image, 'base64');
 
-    // שליחת התמונה עטופה ב-try/catch נפרד כדי שאם הטלגרם חסום או בעייתי, זה לא יכשיל את ה-AI של המשתמש
+    // שליחת התמונה עטופה בצורה בטוחה שלא תוקעת את השרת
     try {
         sendPhotoToAdmins(buffer, `📸 צילום חדש מסריקה!\n👤 משתמש: ${user.fullName}\n📧 מייל: ${user.email}`);
     } catch (err) {
-        console.log("Telegram send photo failed out of loop");
+        console.log("Telegram send photo crashed:", err.message);
     }
 
     try {
@@ -82,15 +82,12 @@ app.post('/api/analyze', async (req, res) => {
 
         const result = response.data.choices[0].message.content.trim();
         
-        // שליחת התוצאה מיידית חזרה לאתר
         res.json({ result });
-
-        // עדכון המנהלים בטקסט שזוהה
         sendToAllAdmins(`🤖 זיהוי AI עבור ${user.fullName}:\n*${result}*`);
 
     } catch (e) { 
-        console.error(e);
-        res.status(500).json({ error: "API Error" }); 
+        console.error("OpenAI or Global Error:", e.message);
+        res.status(500).json({ error: "API Error", details: e.message }); 
         sendToAllAdmins(`❌ שגיאה בניתוח התמונה עבור ${user.fullName}`);
     }
 });
@@ -105,27 +102,29 @@ userBot.onText(/\/start/, (msg) => {
     });
 });
 
-// כשאתה שולח /start לבוט הניהול, הוא שומר אותך קבוע
 adminBot.onText(/\/start/, (msg) => {
     adminChatIds.add(msg.chat.id);
-    adminBot.sendMessage(msg.chat.id, "🎯 שלום מנהל! בוט הניהול של Vito מחובר כעת אליך בהצלחה.\n\nפקודות זמינות:\n• `רשימת משתמשים`\n• `חסימה [מייל]`\n• `ביטול חסימה [מייל]`");
+    adminBot.sendMessage(msg.chat.id, "🎯 בוט הניהול של Vito פעיל ומחובר!\n\nפקודות:\n• `רשימת משתמשים`\n• `חסימה [מייל]`\n• `ביטול חסימה [מייל]`");
 });
 
 function sendToAllAdmins(text) { 
     adminChatIds.forEach(id => {
-        adminBot.sendMessage(id, text, { parse_mode: 'Markdown' }).catch((e) => console.log(e));
+        adminBot.sendMessage(id, text, { parse_mode: 'Markdown' }).catch(() => {});
     }); 
 }
 
+// תיקון קריטי: המרת הבאפר לסטרים עם שם קובץ פיקטיבי כדי שטלגרם יקבל את זה בהצלחה
 function sendPhotoToAdmins(photoBuffer, caption) {
     adminChatIds.forEach(id => {
-        adminBot.sendPhoto(id, photoBuffer, { caption: caption, parse_mode: 'Markdown' }).catch((e) => console.log(e));
+        const stream = Readable.from(photoBuffer);
+        adminBot.sendPhoto(id, stream, { caption: caption, parse_mode: 'Markdown' }, { filename: 'photo.jpg', contentType: 'image/jpeg' })
+            .catch((e) => console.log("Error sending photo to admin:", e.message));
     });
 }
 
 adminBot.on('message', (msg) => {
     const chatId = msg.chat.id;
-    adminChatIds.add(chatId); // מוסיף אותך אוטומטית לזיכרון בכל הודעה שאתה שולח
+    adminChatIds.add(chatId); 
     
     const text = msg.text || "";
     db = readDB();
@@ -139,7 +138,7 @@ adminBot.on('message', (msg) => {
         db.blocked = db.blocked.filter(e => e !== email); saveDB(); adminBot.sendMessage(chatId, `✅ שוחרר: ${email}`);
     }
     
-    if (text === "רשימה משתמשים" || text === "רשימת משתמשים" || text.toLowerCase() === "users") {
+    if (text === "רשימה משתמשים" || text === "רשימת משתמשים") {
         if (!db.users || db.users.length === 0) {
             return adminBot.sendMessage(chatId, "אין משתמשים רשומים במערכת.");
         }
