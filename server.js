@@ -5,7 +5,7 @@ const fs = require('fs');
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
 
-const app = report => express();
+const app = express();
 app.use(cors());
 app.use(bodyParser.json({ limit: '10mb' }));
 
@@ -96,8 +96,8 @@ userBot.onText(/\/start/, (msg) => {
     userBot.sendMessage(chatId, welcomeText, {
         reply_markup: {
             inline_keyboard: [[
-                // תשנה פה לכתובת האמיתית של האתר שלך ב-GitHub Pages!
-                { text: btnText, web_app: { url: "https://YOUR-GITHUB-PAGES-URL.github.io" } }
+                // מחובר ישירות לדומיין ה-GitHub Pages שלך!
+                { text: btnText, web_app: { url: "https://pyldmkdj-star.github.io/Vito" } }
             ]]
         }
     });
