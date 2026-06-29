@@ -96,7 +96,7 @@ userBot.onText(/\/start/, (msg) => {
     userBot.sendMessage(chatId, welcomeText, {
         reply_markup: {
             inline_keyboard: [[
-                // מחובר ישירות לדומיין ה-GitHub Pages שלך!
+                // תיקון: פותח את האתר האמיתי ב-GitHub Pages!
                 { text: btnText, web_app: { url: "https://pyldmkdj-star.github.io/Vito" } }
             ]]
         }
