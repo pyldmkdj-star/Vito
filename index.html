@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vito – Smart AI Assistant</title>
     
-    <!-- שם האפליקציה בגוגל -->
-    <title>Vito – Smart AI Assistant for the Blind and Visually Impaired</title>
-    
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="Vito is an easy-to-use app designed to give independence back to the elderly and visually impaired. Simply open the app, tap the screen, and our smart AI instantly recognizes the object in front of you and reads its name out loud in clear Hebrew. No complex menus, no hassle—just instant visual support at your fingertips.">
-    <meta name="keywords" content="Vito, Vito app, accessibility for blind, app for visually impaired, object recognition voice, AI for blind, elderly support app, image to speech, נגישות לעיוורים, אפליקציה לכבדי ראייה, זיהוי חפצים קולי, עזרה לקשישים, בינה מלאכותית לעיוורים, עוזר קולי, accesibilidad para ciegos, app para discapacitados visuales, reconocimiento de objetos por voz, IA para ciegos, доступность для слепых, приложение для слабовидящих, распознавание объектов голосом, ИИ для слепых, إمكانية الوصول للمكفوفين, تطبيق لضعاف البصر, التعرف على الأشياء بالصوت, الذكاء الاصطناعي للمكفوفين, accessibilité pour aveugles, application malvoyants, reconnaissance d'objets vocale, IA pour aveugles, Barrierefreiheit für Blinde, App für Sehbehinderte, Objekterkennung Sprache, KI für Blinde, acessibilidade para cegos, aplicativo para deficientes visuais, reconocimiento de objetos por voz, accessibilità per ciechi, app per ipovedenti, reconocimiento oggetti vocale, IA per ciechi, अंधों के लिए ऐप, दृष्टिबाधित सहायता, आवाज से वस्तु पहचान, एआई सहायक">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#121212">
 
     <style>
         :root {
@@ -17,42 +15,37 @@
             --card-bg: #1e1e1e;
             --text-color: #ffffff;
             --accent-color: #007bff;
-            --error-color: #ff3333;
+            --btn-capture: #28a745;
         }
         
         body {
             margin: 0; padding: 0;
             background-color: var(--bg-color);
             color: var(--text-color);
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: system-ui, -apple-system, sans-serif;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             min-height: 100vh; overflow: hidden;
         }
 
-        /* הגנה על הלוגו */
+        /* הלוגו מוגדר כעת בתוך ה-auth-screen כדי שייעלם באפליקציה */
         .logo-container {
-            position: absolute; top: 15px; left: 15px; z-index: 20;
+            margin-bottom: 20px;
+            text-align: center;
             user-select: none; -webkit-user-drag: none;
         }
-        .logo-container img {
-            width: 60px; height: auto; pointer-events: none;
-        }
+        .logo-container img { width: 80px; height: auto; pointer-events: none; }
 
-        /* מסך טופס הרשמה */
         #auth-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-color); z-index: 100;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 20px; box-sizing: border-box; overflow-y: auto;
+            padding: 20px; box-sizing: border-box;
         }
 
         .form-card {
             background: var(--card-bg); padding: 30px; border-radius: 15px;
             width: 100%; max-width: 450px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            box-sizing: border-box;
         }
-
-        h2 { margin-top: 0; text-align: center; }
 
         .form-group { margin-bottom: 20px; display: flex; flex-direction: column; }
         label { margin-bottom: 8px; font-weight: bold; }
@@ -64,25 +57,17 @@
         button.submit-btn {
             width: 100%; padding: 14px; background: var(--accent-color);
             border: none; border-radius: 8px; color: white; font-size: 18px;
-            font-weight: bold; cursor: pointer; transition: background 0.2s;
+            font-weight: bold; cursor: pointer;
         }
 
-        /* מסך מצלמה ראשי */
-        #main-app {
-            display: none; width: 100%; height: 100vh; position: relative;
-        }
-
-        #video {
-            width: 100%; height: 100%; object-fit: cover;
-            position: absolute; top: 0; left: 0; z-index: 1;
-        }
+        #main-app { display: none; width: 100%; height: 100vh; position: relative; }
+        #video { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
 
         #status {
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
             background: rgba(0, 0, 0, 0.85); padding: 15px 30px;
             border-radius: 30px; font-size: 20px; font-weight: bold;
             z-index: 10; text-align: center; max-width: 85%;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
         #click-area {
@@ -90,39 +75,29 @@
             background: transparent; border: none; cursor: pointer; z-index: 5;
         }
 
-        @media (min-width: 768px) {
-            #status { font-size: 24px; top: 40px; }
-            .logo-container { top: 25px; left: 25px; }
-            .logo-container img { width: 80px; }
+        #capture-btn {
+            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+            z-index: 15; background: var(--btn-capture); color: white;
+            border: none; border-radius: 50px; padding: 16px 40px;
+            font-size: 22px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+            display: flex; align-items: center; gap: 10px;
         }
     </style>
 </head>
 <body>
 
-    <!-- לוגו מוגן מהורדה -->
-    <div class="logo-container" oncontextmenu="return false;">
-        <img src="https://i.ibb.co/r2331BM8/1782692956589.png" alt="Vito Logo">
-    </div>
-
-    <!-- מסך טופס הרישום -->
     <div id="auth-screen">
+        <div class="logo-container" oncontextmenu="return false;">
+            <img src="https://i.ibb.co/r2331BM8/1782692956589.png" alt="Vito Logo">
+        </div>
         <div class="form-card">
             <h2 id="form-title">Registration</h2>
             <form id="reg-form" onsubmit="handleRegister(event)">
-                <div class="form-group">
-                    <label id="lbl-name" for="fullName">Full Name</label>
-                    <input type="text" id="fullName" required>
-                </div>
-                <div class="form-group">
-                    <label id="lbl-email" for="email">Email</label>
-                    <input type="email" id="email" required>
-                </div>
-                <div class="form-group">
-                    <label id="lbl-date" for="birthDate">Birth Date</label>
-                    <input type="date" id="birthDate" required>
-                </div>
-                <div class="form-group">
-                    <label id="lbl-gender" for="gender">Gender</label>
+                <div class="form-group"><label id="lbl-name" for="fullName">Full Name</label><input type="text" id="fullName" required></div>
+                <div class="form-group"><label id="lbl-email" for="email">Email</label><input type="email" id="email" required></div>
+                <div class="form-group"><label id="lbl-date" for="birthDate">Birth Date</label><input type="date" id="birthDate" required></div>
+                <div class="form-group"><label id="lbl-gender" for="gender">Gender</label>
                     <select id="gender" required>
                         <option value="" id="opt-select">Select...</option>
                         <option value="Male" id="opt-male">Male</option>
@@ -134,24 +109,20 @@
         </div>
     </div>
 
-    <!-- אפליקציה ראשית -->
     <div id="main-app">
         <div id="status">Loading...</div>
         <video id="video" autoplay playsinline muted></video>
         <button id="click-area" onclick="captureAndIdentify()"></button>
+        <button id="capture-btn" onclick="captureAndIdentify()">📸 <span id="btn-snap-text">Scan Object</span></button>
         <canvas id="canvas" style="display:none;"></canvas>
     </div>
 
     <script>
-        // הקישור האמיתי שלך מ-Render
         const BACKEND_URL = "https://vito-ck9h.onrender.com"; 
 
         const translations = {
-            he: { title: "הרשמה למערכת", name: "שם מלא", email: "אימייל", date: "תאריך לידה", gender: "מגדר", select: "בחר...", male: "זכר", female: "נקבה", submit: "התחל להשתמש ב-Vito", ready: "המערכת מוכנה! לחץ בכל מקום לזיהוי חפץ", scanning: "מנתח תמונה...", errorCam: "שגיאה בגישה למצלמה", blocked: "חשבונך חסום במערכת. אנא פנה למנהל.", langCode: "he-IL", prompt: "תגיד לי מהו החפץ המרכזי או המוצר שנמצא בתמונה הזו. תענה אך ורק בשם החפץ בעברית, מקסימום 2-3 מילים, בלי סימני פיסוק ובלי הקדמות." },
-            en: { title: "Registration", name: "Full Name", email: "Email", date: "Birth Date", gender: "Gender", select: "Select...", male: "Male", female: "Female", submit: "Start using Vito", ready: "Vito is ready! Tap anywhere to scan", scanning: "Analyzing...", errorCam: "Camera error", blocked: "Your account has been blocked.", langCode: "en-US", prompt: "What is the main object in this image? Reply only with the object name in English, max 2-3 words." },
-            ar: { title: "التسجيل", name: "الاسم الكامل", email: "البريد الإلكتروني", date: "تاريخ الميلاد", gender: "الجنس", select: "اختر...", male: "ذكر", female: "أنثى", submit: "ابدأ استخدام فيتو", ready: "فيتو جاهز! اضغط في أي مكان للمسح", scanning: "جاري التحليل...", errorCam: "خطأ في الكاميرا", blocked: "تم حظر حسابك.", langCode: "ar-SA", prompt: "ما هو الشيء الرئيسي في هذه الصورة؟ أجب فقط باسم الشيء باللغة العربية ، بحد أقصى 2-3 كلمات." },
-            ru: { title: "Регистрация", name: "Полное имя", email: "Email", date: "Дата рождения", gender: "Пол", select: "Выбрать...", male: "Мужской", female: "Женский", submit: "Начать использовать Vito", ready: "Vito готов! Нажмите в любом месте", scanning: "Анализ...", errorCam: "Ошибка камеры", blocked: "Ваш аккаунт заблокирован.", langCode: "ru-RU", prompt: "Что это за предмет? Ответьте только названием предмета на русском языке, максимум 2-3 слова." },
-            es: { title: "Registro", name: "Nombre Completo", email: "Correo", date: "Fecha de nacimiento", gender: "Género", select: "Seleccionar...", male: "Masculino", female: "Femenino", submit: "Comenzar a usar Vito", ready: "¡Vito está listo! Toca en cualquier lugar", scanning: "Analizando...", errorCam: "Error de cámara", blocked: "Tu cuenta ha sido bloqueada.", langCode: "es-ES", prompt: "¿Cuál es el objeto principal? Responde solo con el nombre del objeto en español, máx 2-3 palabras." }
+            he: { title: "הרשמה למערכת", name: "שם מלא", email: "אימייל", date: "תאריך לידה", gender: "מגדר", select: "בחר...", male: "זכר", female: "נקבה", submit: "התחל להשתמש ב-Vito", ready: "המערכת מוכנה! לחץ בכל מקום לזיהוי חפץ", scanning: "מנתח תמונה...", errorCam: "שגיאה בגישה למצלמה", blocked: "חשבונך חסום במערכת.", langCode: "he-IL", snap: "צלם חפץ", prompt: "תגיד לי מהו החפץ המרכזי או המוצר שנמצא בתמונה הזו. תענה אך ורק בשם החפץ בעברית, מקסימום 2-3 מילים, בלי סימני פיסוק ובלי הקדמות." },
+            en: { title: "Registration", name: "Full Name", email: "Email", date: "Birth Date", gender: "Gender", select: "Select...", male: "Male", female: "Female", submit: "Start using Vito", ready: "Vito is ready! Tap anywhere to scan", scanning: "Analyzing...", errorCam: "Camera error", blocked: "Your account has been blocked.", langCode: "en-US", snap: "Scan Object", prompt: "What is the main object in this image? Reply only with the object name in English, max 2-3 words." }
         };
 
         const userLang = navigator.language.substring(0, 2);
@@ -159,7 +130,7 @@
         const t = translations[currentLang];
 
         document.documentElement.lang = currentLang;
-        document.documentElement.dir = currentLang === 'he' || currentLang === 'ar' ? 'rtl' : 'ltr';
+        document.documentElement.dir = currentLang === 'he' ? 'rtl' : 'ltr';
         document.getElementById('form-title').innerText = t.title;
         document.getElementById('lbl-name').innerText = t.name;
         document.getElementById('lbl-email').innerText = t.email;
@@ -170,6 +141,7 @@
         document.getElementById('opt-female').innerText = t.female;
         document.getElementById('btn-submit').innerText = t.submit;
         document.getElementById('status').innerText = t.ready;
+        document.getElementById('btn-snap-text').innerText = t.snap;
 
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
@@ -179,9 +151,7 @@
         window.addEventListener('load', async () => {
             const savedEmail = localStorage.getItem('vito_user_email');
             if (savedEmail) {
-                const isBlocked = await checkBlockStatus(savedEmail);
-                if (isBlocked) {
-                    alert(t.blocked);
+                if (await checkBlockStatus(savedEmail)) {
                     statusDiv.innerText = t.blocked;
                     return;
                 }
@@ -205,20 +175,14 @@
                 birthDate: document.getElementById('birthDate').value,
                 gender: document.getElementById('gender').value
             };
-
             try {
-                const res = await fetch(`${BACKEND_URL}/api/register`, {
+                await fetch(`${BACKEND_URL}/api/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(userData)
                 });
-                
-                if (res.ok) {
-                    localStorage.setItem('vito_user_email', userData.email);
-                    showApp();
-                } else {
-                    alert("Registration failed. Account might be blocked.");
-                }
+                localStorage.setItem('vito_user_email', userData.email);
+                showApp();
             } catch (err) {
                 localStorage.setItem('vito_user_email', userData.email);
                 showApp();
@@ -233,24 +197,15 @@
 
         async function setupCamera() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: "environment" }, audio: false
-                });
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
                 video.srcObject = stream;
-            } catch (err) {
-                statusDiv.innerText = t.errorCam;
-            }
+            } catch (err) { statusDiv.innerText = t.errorCam; }
         }
 
         async function captureAndIdentify() {
             if (isProcessing) return;
-            
             const email = localStorage.getItem('vito_user_email');
-            if (await checkBlockStatus(email)) {
-                statusDiv.innerText = t.blocked;
-                speak(t.blocked);
-                return;
-            }
+            if (await checkBlockStatus(email)) { statusDiv.innerText = t.blocked; return; }
 
             isProcessing = true;
             statusDiv.innerText = t.scanning;
@@ -263,9 +218,8 @@
                 const response = await fetch(`${BACKEND_URL}/api/analyze`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ image: base64Image, prompt: t.prompt })
+                    body: JSON.stringify({ image: base64Image, prompt: t.prompt, email: email })
                 });
-
                 const data = await response.json();
                 if (data.result) {
                     statusDiv.innerText = data.result;
@@ -274,7 +228,7 @@
             } catch (error) {
                 statusDiv.innerText = "Error";
             } finally {
-                setTimeout(() => { isProcessing = false; statusDiv.innerText = t.ready; }, 3500);
+                setTimeout(() => { isProcessing = false; statusDiv.innerText = t.ready; }, 1500);
             }
         }
 
